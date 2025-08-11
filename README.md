@@ -56,3 +56,80 @@ def convert_voice():
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
 ```
+### here html
+
+```
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Converter</title>
+</head>
+
+<body>
+    <h2>Voice Converter</h2>
+
+    <label>Select Audio File:</label>
+    <input type="file" id="audioFile" accept="audio/*"><br><br>
+
+    <label>Pitch (semitones):</label>
+    <input type="number" id="pitch" step="0.1"><br><br>
+
+    <label>Speed Rate:</label>
+    <input type="number" id="rate" step="0.01"><br><br>
+
+    <button onclick="uploadAudio()">Convert Voice</button>
+
+    <h3>Preview</h3>
+    <audio id="audioPlayer" controls></audio>
+
+    <script>
+        async function uploadAudio() {
+            const fileInput = document.getElementById("audioFile");
+            const pitchInput = document.getElementById("pitch").value;
+            const rateInput = document.getElementById("rate").value;
+
+            if (!fileInput.files.length) {
+                alert("Please select an audio file first!");
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+            formData.append("pitch", pitchInput);
+            formData.append("rate", rateInput);
+
+            try {
+                const response = await fetch("http://localhost:5000/convert-voice", {
+                    method: "POST",
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
+                const blob = await response.blob();
+                if (blob.size === 0) {
+                    throw new Error("Received empty audio file");
+                }
+
+                const url = URL.createObjectURL(blob);
+
+                // Play audio in browser
+                const audioPlayer = document.getElementById("audioPlayer");
+                audioPlayer.src = url;
+                audioPlayer.play();
+
+            } catch (error) {
+                console.error("Error converting voice:", error);
+                alert("Error converting voice. Check console for details.");
+            }
+        }
+    </script>
+</body>
+
+</html>
+```
